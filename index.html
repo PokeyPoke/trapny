@@ -291,6 +291,7 @@ const SEC = [
     ['I say: “Of course.”']] }
 ];
 let ST = Object.assign({}, DEF), DUR = 186.8;
+const END_T = 186.0;
 const COUNT_STEP = .6; /* spacing of the sung "one, two, three"; its start is the v4_cnt row */
 const KEY = 'trapny-times-v7';
 try {
@@ -1083,7 +1084,7 @@ SCN.fin = c => {
 /* ================= outro ================= */
 SCN.outro = c => {
   const T = c.T, li = c.li, lt = c.lt, ls = c.ls;
-  const endK = clamp((T - (c.sec.t1 - 3.2)) / 1.2, 0, 1);
+  const endK = clamp((T - END_T) / .5, 0, 1); /* END_T: when the "THE END" card fades in (3:06) */
   if (li === 0) {
     if (lt < .5) {
       px(0,0,W,H,'#0a0a14'); px(8,8,W - 16,H - 16,'#16162a'); box(8,8,W - 16,H - 16,'#444',2);
