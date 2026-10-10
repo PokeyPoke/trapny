@@ -101,6 +101,23 @@ function uncle(x, y, s, o) {
   if (o.talk) { const op = Math.floor(t * 9) % 2; r(4, 6, 4, op ? 1 : 1, '#7a1020'); if (op) r(4, 6, 4, 1, '#7a1020'); } else r(4, 6, 4, 1, INK);
   void g;
 }
+function anezka(x, y, s, o) {
+  const t = o.t || 0, f = o.face || 1, g = ctx;
+  g.save(); g.translate(Math.round(x), 0); g.scale(f, 1); g.translate(-Math.round(x), 0);
+  const r = (a, b, w, h, c) => px(x + (a - 6) * s, y + (b - 16) * s, w * s, h * s, c);
+  px(x - 7 * s, y - 1, 14 * s, Math.max(2, s), 'rgba(0,0,0,.28)');
+  const st = o.walk ? Math.round(Math.sin(t * 14)) : 0;
+  r(3, 12 + (st > 0 ? -1 : 0), 2, 3, '#fbd1b0'); r(7, 12 + (st < 0 ? -1 : 0), 2, 3, '#fbd1b0');
+  r(2, 15, 3, 1, '#ffd23f'); r(7, 15, 3, 1, '#ffd23f');
+  r(10, 4, 2, 6, '#f1e0a0'); r(11, 9, 2, 3, '#f1e0a0'); r(10, 3, 2, 1, PINK);
+  r(2, 7, 8, 5, '#2ec4b6'); r(2, 11, 8, 1, '#1f9e92');
+  r(1, 8, 1, 4, '#2ec4b6'); r(10, 8, 1, 4, '#2ec4b6'); r(1, 12, 1, 1, '#fbd1b0'); r(10, 12, 1, 1, '#fbd1b0');
+  r(2, 2, 8, 5, '#fbd1b0'); r(2, 1, 8, 2, '#f1e0a0'); r(2, 3, 2, 2, '#f1e0a0'); r(8, 3, 2, 1, '#f1e0a0');
+  r(3, 3, 2, 2, '#fff'); r(7, 3, 2, 2, '#fff'); r(4, 4, 1, 1, INK); r(8, 4, 1, 1, INK);
+  if (o.talk) { r(4, 5, 4, 1, '#7a1020'); r(4, 5, 4, 1, '#ff7a8a'); } else r(5, 5, 2, 1, INK);
+  r(3, 5, 1, 1, '#ff9aa8'); r(8, 5, 1, 1, '#ff9aa8');
+  g.restore();
+}
 function mushroom(x, y, type, t, pop) {
   const s = 1 + (pop > 0 ? Math.sin(pop * Math.PI) * .5 : 0);
   const R = (a, b, w, h, c) => px(x + (a - 5) * s, y + (b - 9) * s, w * s, h * s, c);
@@ -117,14 +134,15 @@ function mushroom(x, y, type, t, pop) {
 }
 
 /* ---------- state ---------- */
-const BEST_KEY = 'trapny-game-best';
+const BEST_KEY = 'trapny-game-best-time';
+const GOAL = 25;
 const S = {
-  t: 0, over: false,
+  t: 0, time: 0, mode: 'play', fin: null, megas: 0, newBest: false,
   p: { x: 160, y: 130, tx: null, ty: null, face: 1, walk: false, cringe: 0, cheer: 0 },
-  mush: [], picked: 0, sup: 0, since: 0, next: 3 + (Math.random() < .5 ? 0 : 1), meter: 0, best: 0,
+  mush: [], picked: 0, sup: 0, since: 0, next: 3 + (Math.random() < .5 ? 0 : 1), meter: 0, bestTime: 0,
   uncle: null, fx: [], shake: 0, flash: 0, banner: 0, hint: 6, started: false
 };
-try { S.best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) {}
+try { S.bestTime = parseFloat(localStorage.getItem(BEST_KEY) || '0') || 0; } catch (e) {}
 let uid = 1;
 function spawnMush(initial) {
   for (let tries = 0; tries < 20; tries++) {
@@ -179,20 +197,50 @@ function pick(m) {
   addFx(m.x, m.y - 10, gold ? '+5 KAREL!' : '+1', gold ? YEL : CREAM);
   for (let i = 0; i < 6; i++) S.fx.push({ x: m.x, y: m.y - 4, dx: (Math.random() - .5) * 60, dy: -20 - Math.random() * 40, t: 0, life: .5, spark: true });
   gold ? sndGold() : sndPick();
-  setTimeout(() => spawnMush(false), 400);
-  if (S.since >= S.next && !S.uncle) { S.since = 0; S.next = 3 + (Math.random() < .5 ? 0 : 1); setTimeout(uncleAppears, 350); }
-  if (S.picked > S.best) { S.best = S.picked; try { localStorage.setItem(BEST_KEY, String(S.best)); } catch (e) {} }
+  setTimeout(() => { if (S.mode === 'play') spawnMush(false); }, 400);
+  if (S.mode === 'play' && S.picked >= GOAL) { startFinale(); return; }
+  if (S.since >= S.next && !S.uncle) { S.since = 0; S.next = 3 + (Math.random() < .5 ? 0 : 1); setTimeout(() => { if (S.mode === 'play') uncleAppears(); }, 350); }
 }
 const keys = {};
+function startFinale() {
+  S.mode = 'finale'; S.mush = []; S.p.tx = S.p.ty = null; S.p.walk = false;
+  for (const k in keys) keys[k] = false;
+  S.fin = { t: 0, popped: false, ax: 0, ay: 0, tx: 0, from: 0, cheered: false };
+  sndMega();
+}
+function resetGame() {
+  S.t = 0; S.time = 0; S.mode = 'play'; S.fin = null; S.megas = 0; S.newBest = false;
+  Object.assign(S.p, { x: 160, y: 130, tx: null, ty: null, face: 1, walk: false, cringe: 0, cheer: 0 });
+  S.mush = []; S.picked = 0; S.sup = 0; S.since = 0; S.next = 3 + (Math.random() < .5 ? 0 : 1); S.meter = 0;
+  S.uncle = null; S.fx = []; S.shake = 0; S.flash = 0; S.banner = 0; S.hint = 6; S.started = false;
+  for (let i = 0; i < 6; i++) spawnMush(true);
+  const rb = document.getElementById('greplay'); if (rb) rb.hidden = true;
+}
+function updateFinale(dt) {
+  const f = S.fin, p = S.p; f.t += dt;
+  if (f.t >= .4 && !f.popped) { f.popped = true; uncleAppears(); }
+  if (f.t >= 3 && !f.from) {
+    f.from = 1; f.ay = clamp(p.y + 6, TOP + 14, BOT); f.tx = p.x < W - 90 ? p.x + 50 : p.x - 50; f.ax = f.tx > p.x ? W + 24 : -24; f.sx = f.ax;
+  }
+  if (f.from) { const k = ease((f.t - 3) / 1.6); f.ax = lerp(f.sx, f.tx, k); p.face = f.tx > p.x ? 1 : -1; }
+  if (f.t >= 7 && !f.cheered) { f.cheered = true; p.cheer = 1.6; sndGold(); }
+  if (f.t >= 9 && S.mode === 'finale') {
+    S.mode = 'done';
+    if (!S.bestTime || S.time < S.bestTime) { S.newBest = !!S.bestTime || true; S.bestTime = S.time; try { localStorage.setItem(BEST_KEY, String(S.time)); } catch (e) {} } else S.newBest = false;
+    const rb = document.getElementById('greplay'); if (rb) rb.hidden = false;
+  }
+}
+const fmtT = t => { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
 function update(dt) {
   S.t += dt; const p = S.p;
+  if (S.mode === 'play') S.time += dt; else updateFinale && S.fin && updateFinale(dt);
   if (S.hint > 0 && S.started) S.hint -= dt;
   p.cheer = Math.max(0, p.cheer - dt); p.cringe = Math.max(0, p.cringe - dt);
   S.shake = Math.max(0, S.shake - dt); S.flash = Math.max(0, S.flash - dt * 3); S.banner = Math.max(0, S.banner - dt);
   S.meter = Math.max(0, S.meter - dt * 3);
   let dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
   p.walk = false;
-  if (p.cringe <= 0) {
+  if (p.cringe <= 0 && S.mode === 'play') {
     if (dx || dy) { p.tx = null; const l = Math.hypot(dx, dy); dx /= l; dy /= l; }
     else if (p.tx != null) {
       const ex = p.tx - p.x, ey = p.ty - p.y, d = Math.hypot(ex, ey);
@@ -205,7 +253,7 @@ function update(dt) {
   }
   for (const m of S.mush.slice()) {
     if (m.pop > 0) m.pop = Math.max(0, m.pop - dt * 3);
-    if (Math.hypot(m.x - p.x, m.y - (p.y - 2)) < 13) pick(m);
+    if (S.mode === 'play' && Math.hypot(m.x - p.x, m.y - (p.y - 2)) < 13) pick(m);
   }
   const u = S.uncle;
   if (u) {
@@ -214,7 +262,7 @@ function update(dt) {
       u.phase = 'talk'; u.t = 0; S.sup += 1; S.meter = Math.min(100, S.meter + 34);
       p.cringe = 1.6; S.shake = .45; S.flash = .6; addDirt(u.x, u.y, 14);
       p.tx = p.ty = null; p.face = u.x > p.x ? 1 : -1;
-      if (S.meter >= 100) { S.banner = 2; S.meter = 0; sndMega(); }
+      if (S.meter >= 100) { S.banner = 2; S.meter = 0; S.megas += 1; if (S.mode === 'play') sndMega(); }
     } else if (u.phase === 'talk' && u.t > 2.1) { u.phase = 'sink'; u.t = 0; }
     else if (u.phase === 'sink' && u.t > .5) { S.uncle = null; }
   }
@@ -254,7 +302,14 @@ function render() {
   S.mush.forEach(m => list.push({ y: m.y, d: () => mushroom(m.x, m.y, m.type, S.t, m.pop) }));
   list.push({ y: S.p.y, d: () => girl(S.p.x, S.p.y, 2, { t: S.t, face: S.p.face, walk: S.p.walk, cheer: S.p.cheer > 0, mood: S.p.cringe > 0 ? 'panic' : (S.p.cheer > 0 ? 'happy' : 'flat'), sweat: S.p.cringe > 0, basket: Math.min(2, S.picked) }) });
   if (S.uncle) list.push({ y: S.uncle.y, d: () => drawUncle(S.uncle) });
+  if (S.fin && S.fin.from) list.push({ y: S.fin.ay, d: () => anezka(S.fin.ax, S.fin.ay, 2, { t: S.t, face: S.fin.tx > S.p.x ? -1 : 1, walk: S.fin.t < 4.6, talk: S.fin.t >= 4.8 && S.fin.t < 7 }) });
   list.sort((a, b) => a.y - b.y).forEach(o => o.d());
+  // finale speech bubbles
+  if (S.fin && S.fin.from) {
+    const f = S.fin;
+    if (f.t >= 4.8 && f.t < 7) bubble('I LOVE MUSHROOM PICKING!', clamp(f.ax, 50, W - 50), f.ay - 40, popK((f.t - 4.8) / .25));
+    if (f.t >= 7 && f.t < 9.2) bubble('TOTALLY.', S.p.x, S.p.y - 42, popK((f.t - 7) / .25));
+  }
   // effects
   S.fx.forEach(f => {
     const k = f.t / f.life;
@@ -266,13 +321,24 @@ function render() {
   if (S.flash > 0 && !REDUCE) { g.fillStyle = 'rgba(255,255,255,' + (S.flash * .35).toFixed(2) + ')'; g.fillRect(0, 0, W, H); }
   // HUD
   g.fillStyle = 'rgba(8,5,24,.8)'; g.fillRect(0, 0, W, 13);
-  txt('MUSHROOMS ' + S.picked, 4, 3, 8, CREAM, 'left', null);
+  txt('PICKED ' + Math.min(S.picked, GOAL) + '/' + GOAL, 4, 3, 8, CREAM, 'left', null);
   txt('SUP BRO x' + S.sup, 118, 3, 8, YEL, 'left', null);
   px(256, 3, 60, 8, INK); px(257, 4, 58, 6, '#3a2a7a'); px(257, 4, Math.round(58 * S.meter / 100), 6, PINK);
   txt('TRAPNÝ', 212, 3, 8, CREAM, 'left', null);
-  if (S.best) txt('BEST ' + S.best, W - 4, H - 10, 8, CREAM, 'right');
+  px(0, 13, W, 2, '#3a2a7a'); px(0, 13, Math.round(W * Math.min(1, S.picked / GOAL)), 2, YEL);
   if (S.banner > 0) { const b = Math.floor(S.t * 8) % 2; txt('MEGA TRAPNÝ!', W / 2, 60, 16, b ? YEL : PINK, 'center'); }
-  if (S.hint > 0) { g.fillStyle = 'rgba(8,5,24,.7)'; g.fillRect(40, 150, 240, 20); txt(S.started ? 'GRAB THE MUSHROOMS...' : (COARSE ? 'TAP OR USE THE BUTTONS' : 'ARROWS / WASD OR CLICK TO MOVE'), W / 2, 156, 8, YEL, 'center', null); }
+  if (S.mode === 'done') {
+    g.fillStyle = 'rgba(8,5,24,.82)'; g.fillRect(0, 13, W, H - 13);
+    px(50, 28, 220, 126, INK); px(53, 31, 214, 120, '#2a1f55'); px(53, 31, 214, 3, CYAN);
+    txt('MEGA FUN!', W / 2, 40, 16, Math.floor(S.t * 4) % 2 ? PINK : YEL, 'center');
+    txt('FAMILY TRADITION UNLOCKED', W / 2, 62, 8, CREAM, 'center');
+    txt('MUSHROOMS  ' + S.picked, 76, 80, 8, CREAM, 'left');
+    txt('SUP BROS   ' + S.sup, 76, 92, 8, YEL, 'left');
+    txt('TIME       ' + fmtT(S.time), 76, 104, 8, CREAM, 'left');
+    txt('BEST TIME  ' + fmtT(S.bestTime) + (S.newBest ? '  NEW!' : ''), 76, 116, 8, CYAN, 'left');
+    if (Math.floor(S.t * 2) % 2) txt(COARSE ? 'TAP TO PLAY AGAIN' : 'CLICK OR PRESS ENTER', W / 2, 136, 8, PINK, 'center');
+  }
+  if (S.hint > 0 && S.mode === 'play') { g.fillStyle = 'rgba(8,5,24,.7)'; g.fillRect(40, 150, 240, 20); txt(S.started ? 'GRAB THE MUSHROOMS...' : (COARSE ? 'TAP OR USE THE BUTTONS' : 'ARROWS / WASD OR CLICK TO MOVE'), W / 2, 156, 8, YEL, 'center', null); }
 }
 
 /* ---------- input ---------- */
@@ -280,6 +346,7 @@ const keyMap = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDow
 let visible = true;
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { visible = es[0].isIntersecting; if (!visible) for (const k in keys) keys[k] = false; }, { threshold: .4 }).observe(cv);
 document.addEventListener('keydown', e => {
+  if (S.mode === 'done' && visible && (e.key === 'Enter') && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName)) { e.preventDefault(); resetGame(); return; }
   const k = keyMap[e.key]; if (!k || !visible) return;
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -291,6 +358,8 @@ function toWorld(e) { const r = cv.getBoundingClientRect(); return [(e.clientX -
 let dragging = false, down = null;
 function aim(e) { const [x, y] = toWorld(e); S.p.tx = clamp(x, LEFT, RIGHT); S.p.ty = clamp(y + 4, TOP + 6, BOT); S.started = true; }
 cv.addEventListener('pointerdown', e => {
+  if (S.mode === 'done') { if (S.fin && S.fin.t > 9.6) resetGame(); return; }
+  if (S.mode !== 'play') return;
   down = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
   if (e.pointerType !== 'touch') { dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} aim(e); beep(440, .04, 'square', .02); }
 });
@@ -310,6 +379,8 @@ document.querySelectorAll('#dpad [data-k]').forEach(b => {
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
 const COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+const rpb = document.getElementById('greplay'); if (rpb) rpb.addEventListener('click', resetGame);
+const mus = document.getElementById('gmusic'); if (mus) mus.addEventListener('click', () => { if (window.__toggleSong) window.__toggleSong(); });
 const mb = document.getElementById('gmute');
 if (mb) mb.addEventListener('click', () => { muted = !muted; mb.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON'; mb.setAttribute('aria-pressed', String(muted)); });
 
@@ -322,6 +393,6 @@ function frame(ts) {
   render();
   requestAnimationFrame(frame);
 }
-window.__game = { S, update, render, pick, uncleAppears };
+window.__game = { S, update, render, pick, uncleAppears, resetGame, GOAL };
 requestAnimationFrame(frame);
 })();
