@@ -1148,7 +1148,7 @@ function camFor(c) {
   else if (sc === 'fin') { z = 1.06 + pul * .03; rot = Math.sin(c.T * 2.2) * .03; if (z < 1.1) z = 1.1; }
   else { z = odd ? 1 + .12 * k : 1.12 - .1 * k; if (sc === 'pre2') rot = -.03 * k; }
   const wl = sc === 'chorus' ? chShot(c).t : c.ls;
-  if (wl < .16) { const w = Math.pow(1 - wl / .16, 2); dx = (c.cue.li % 2 ? 1 : -1) * 70 * w; z *= 1 + .1 * w; if (Math.abs(rot) < .01) rot = (c.cue.li % 2 ? 1 : -1) * .03 * w; if (z < 1.12 && Math.abs(rot) > .02) z = 1.12; }
+  if (wl < .16 && c.cue !== CUES[0]) { /* no whip-pan on the very first shot, so the clock starts centred */ const w = Math.pow(1 - wl / .16, 2); dx = (c.cue.li % 2 ? 1 : -1) * 70 * w; z *= 1 + .1 * w; if (Math.abs(rot) < .01) rot = (c.cue.li % 2 ? 1 : -1) * .03 * w; if (z < 1.12 && Math.abs(rot) > .02) z = 1.12; }
   return { z:z, rot:rot, dx:dx, dy:dy };
 }
 let capLast = '';
