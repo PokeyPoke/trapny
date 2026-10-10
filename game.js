@@ -272,7 +272,7 @@ function render() {
   txt('TRAPNÝ', 212, 3, 8, CREAM, 'left', null);
   if (S.best) txt('BEST ' + S.best, W - 4, H - 10, 8, CREAM, 'right');
   if (S.banner > 0) { const b = Math.floor(S.t * 8) % 2; txt('MEGA TRAPNÝ!', W / 2, 60, 16, b ? YEL : PINK, 'center'); }
-  if (S.hint > 0) { g.fillStyle = 'rgba(8,5,24,.7)'; g.fillRect(40, 150, 240, 20); txt(S.started ? 'GRAB THE MUSHROOMS...' : 'ARROWS / WASD OR TAP TO MOVE', W / 2, 156, 8, YEL, 'center', null); }
+  if (S.hint > 0) { g.fillStyle = 'rgba(8,5,24,.7)'; g.fillRect(40, 150, 240, 20); txt(S.started ? 'GRAB THE MUSHROOMS...' : (COARSE ? 'TAP OR USE THE BUTTONS' : 'ARROWS / WASD OR CLICK TO MOVE'), W / 2, 156, 8, YEL, 'center', null); }
 }
 
 /* ---------- input ---------- */
@@ -288,12 +288,28 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { const k = keyMap[e.key]; if (k) keys[k] = false; });
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 function toWorld(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; }
-let dragging = false;
+let dragging = false, down = null;
 function aim(e) { const [x, y] = toWorld(e); S.p.tx = clamp(x, LEFT, RIGHT); S.p.ty = clamp(y + 4, TOP + 6, BOT); S.started = true; }
-cv.addEventListener('pointerdown', e => { dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} aim(e); beep(440, .04, 'square', .02); });
+cv.addEventListener('pointerdown', e => {
+  down = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
+  if (e.pointerType !== 'touch') { dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} aim(e); beep(440, .04, 'square', .02); }
+});
 cv.addEventListener('pointermove', e => { if (dragging) aim(e); });
-cv.addEventListener('pointerup', () => { dragging = false; });
-cv.addEventListener('pointercancel', () => { dragging = false; });
+cv.addEventListener('pointerup', e => {
+  dragging = false;
+  // touch: a short tap moves the girl, a vertical drag is left to scroll the page
+  if (e.pointerType === 'touch' && down && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 12 && performance.now() - down.t < 500) { aim(e); beep(440, .04, 'square', .02); }
+  down = null;
+});
+cv.addEventListener('pointercancel', () => { dragging = false; down = null; });
+document.querySelectorAll('#dpad [data-k]').forEach(b => {
+  const k = b.dataset.k;
+  const on = e => { e.preventDefault(); keys[k] = true; S.started = true; S.p.tx = S.p.ty = null; b.classList.add('down'); try { b.setPointerCapture(e.pointerId); } catch (er) {} };
+  const off = () => { keys[k] = false; b.classList.remove('down'); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+});
+const COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
 const mb = document.getElementById('gmute');
 if (mb) mb.addEventListener('click', () => { muted = !muted; mb.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON'; mb.setAttribute('aria-pressed', String(muted)); });
 

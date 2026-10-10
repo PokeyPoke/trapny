@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mega Trapný · pixel music video + mushroom game</title>
 <meta name="description" content="A pixel-art music video for the song Mega Trapný, plus a tiny mushroom picking game. Watch out for the uncle.">
 <meta name="theme-color" content="#120c2b">
@@ -12,6 +12,11 @@
 <meta property="og:image" content="https://PokeyPoke.github.io/trapny/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trapný">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,6 +93,50 @@ details.timing.show { display: block; }
 .grow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .foot { margin-top: 20px; padding-top: 16px; border-top: 3px solid var(--line); text-align: center; font-family: var(--display); font-size: 10px; color: var(--dim); letter-spacing: 1px; }
 .foot b { color: var(--pink); font-weight: 400; }
+
+/* ---- mobile and touch ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; overflow-x: hidden; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+button, input, summary { touch-action: manipulation; }
+button { -webkit-user-select: none; user-select: none; }
+.frame { width: 100%; max-width: calc((100svh - 56px) * 1.7778); margin-inline: auto; }
+.gframe { width: 100%; max-width: calc((100svh - 56px) * 1.7778); margin-inline: auto; }
+.wrap { max-width: 1000px; }
+.time { white-space: nowrap; }
+.chips { overflow-x: auto; flex-wrap: nowrap; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: thin; }
+.chip { flex: 0 0 auto; scroll-snap-align: start; white-space: nowrap; }
+.gframe canvas { touch-action: pan-y; -webkit-touch-callout: none; }
+.dpad { display: none; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px); gap: 8px; justify-content: center; margin-inline: auto; }
+.dpad button { width: 64px; height: 64px; padding: 0; font-size: 20px; line-height: 1; touch-action: none; -webkit-touch-callout: none; }
+.dpad [data-k=up] { grid-column: 2; grid-row: 1; }
+.dpad [data-k=left] { grid-column: 1; grid-row: 2; }
+.dpad [data-k=down] { grid-column: 2; grid-row: 2; }
+.dpad [data-k=right] { grid-column: 3; grid-row: 2; }
+.dpad button.down { background: var(--pink); color: var(--ink); }
+@media (pointer: coarse), (hover: none), (max-width: 700px) { .dpad { display: grid; } .kbd-hint { display: none; } }
+@media (pointer: fine) and (hover: hover) and (min-width: 701px) { .touch-hint { display: none; } }
+@media (pointer: coarse), (max-width: 640px) {
+  button { min-height: 44px; padding: 12px 14px; font-size: 10px; }
+  .chip { min-height: 44px; min-width: 52px; font-size: 9px; padding: 12px 12px; }
+  input[type=range] { height: 44px; }
+  .cap { font-size: 10px; padding: 10px 10px; }
+  .en { font-size: 10px; }
+}
+@media (max-width: 520px) {
+  body { font-size: 19px; }
+  h1 { font-size: 15px; }
+  .game-sec h2 { font-size: 12px; }
+  .bar { gap: 8px; }
+  #scrub { flex: 1 1 100%; order: 5; }
+  .time { margin-left: auto; }
+  .tr { font-size: 19px; }
+  .foot { font-size: 9px; }
+}
+.frame:fullscreen { max-width: none; width: 100vw; height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center; border: 0; box-shadow: none; }
+.frame:fullscreen canvas { height: min(calc(100vh - 120px), 56.25vw); width: auto; max-width: 100vw; margin-inline: auto; }
+.frame:fullscreen .stage { display: flex; justify-content: center; }
+#fs[hidden] { display: none; }
 </style>
 
 </head>
@@ -113,6 +162,7 @@ details.timing.show { display: block; }
   <div class="bar">
     <button type="button" id="play">PLAY</button>
     <button type="button" id="restart" class="alt">RESTART</button>
+    <button type="button" id="fs" class="alt" hidden>FULLSCREEN</button>
     <input type="range" id="scrub" min="0" max="187" step="0.01" value="0" aria-label="Seek">
     <span class="time" id="time">0:00 / 3:07</span>
   </div>
@@ -134,8 +184,9 @@ details.timing.show { display: block; }
 
   <section class="game-sec" aria-labelledby="gt">
     <h2 id="gt">MUSHROOM PICKING SIMULATOR</h2>
-    <p class="note">Pick mushrooms with the arrow keys, WASD, or by tapping the screen. The golden one is Karel (worth 5). Every few mushrooms, someone pops out of the ground.</p>
+    <p class="note"><span class="kbd-hint">Move with the arrow keys or WASD, or click where you want to go. </span><span class="touch-hint">Tap the screen or hold the arrow buttons to move. </span>The golden mushroom is Karel (worth 5). Every few mushrooms, someone pops out of the ground.</p>
     <div class="gframe"><canvas id="game" role="img" aria-label="Mushroom picking game. Move the girl to pick mushrooms. Every three or four mushrooms the uncle pops out of the ground and says Sup bro."></canvas></div>
+    <div class="dpad" id="dpad" role="group" aria-label="Move buttons"><button type="button" class="alt" data-k="up" aria-label="Move up">&#9650;</button><button type="button" class="alt" data-k="left" aria-label="Move left">&#9664;</button><button type="button" class="alt" data-k="down" aria-label="Move down">&#9660;</button><button type="button" class="alt" data-k="right" aria-label="Move right">&#9654;</button></div>
     <div class="grow"><button type="button" id="gmute" class="alt" aria-pressed="false">SOUND: ON</button></div>
   </section>
   <footer class="foot">by <b>gargamel</b></footer>
@@ -1213,7 +1264,7 @@ scr.addEventListener('change', () => { dragging = false; });
 scr.addEventListener('input', () => { seekTo(parseFloat(scr.value) || 0); syncPlay(); });
 document.addEventListener('keydown', e => { if (e.code === 'Space' && !/^(BUTTON|INPUT|SUMMARY)$/.test(e.target.tagName)) { e.preventDefault(); playing ? pause() : play(); } });
 
-let last = 0;
+let last = 0, timeLast = '';
 function tick(ts) {
   const dt = Math.min(.1, (ts - (last || ts)) / 1000); last = ts;
   if (playing) {
@@ -1222,9 +1273,9 @@ function tick(ts) {
   }
   supPulse = Math.max(0, supPulse - dt * 1.5);
   const cue = renderFrame();
-  if (cue !== lastCue) { lastCue = cue; setCue(cue); chipBtns.forEach(b => b.classList.toggle('on', b.dataset.sec === cue.sec.id)); }
+  if (cue !== lastCue) { lastCue = cue; setCue(cue); chipBtns.forEach(b => { const on = b.dataset.sec === cue.sec.id; b.classList.toggle('on', on); if (on && chipsEl.scrollWidth > chipsEl.clientWidth) { try { chipsEl.scrollTo({ left: b.offsetLeft - (chipsEl.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' }); } catch (e) {} } }); }
   if (!dragging) scr.value = String(T);
-  timeEl.textContent = fmt(T) + ' / ' + fmt(DUR);
+  const tl = fmt(T) + ' / ' + fmt(DUR); if (tl !== timeLast) { timeLast = tl; timeEl.textContent = tl; }
   requestAnimationFrame(tick);
 }
 build(); drawTimes(); updateBig(); syncPlay();
@@ -1234,6 +1285,7 @@ if (document.fonts && document.fonts.load) {
   document.fonts.load('8px "Press Start 2P"', 'ČčĎďĚěŇňŘřŠšŤťŮůŽžÁÉÍÓÚÝáéíóúý').catch(() => {});
   document.fonts.load('16px "VT323"', 'ČčĚěŘřŠšŽžŮů').catch(() => {});
 }
+(() => { const fb = $('fs'), fr = document.querySelector('.frame'); const rq = fr.requestFullscreen || fr.webkitRequestFullscreen; if (rq && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) { fb.hidden = false; fb.addEventListener('click', () => { const on = document.fullscreenElement || document.webkitFullscreenElement; if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else rq.call(fr); }); } })();
 if (/[?&]edit\b/.test(location.search)) $('timing').classList.add('show');
 loadAudio();
 requestAnimationFrame(tick);
