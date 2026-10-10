@@ -75,11 +75,12 @@ input[type=range] { flex: 1 1 180px; min-width: 0; accent-color: var(--pink); he
 .chip.on { background: var(--pink); color: var(--ink); }
 .note { margin: 0; color: var(--dim); font-size: 20px; line-height: 1.1; max-width: 70ch; }
 details.timing { background: var(--panel); border: 3px solid var(--line); padding: 10px 14px; }
+details.timing .subrow .lab { padding-left: 14px; color: var(--cyan); }
 details.timing summary { font-family: var(--display); font-size: 10px; cursor: pointer; color: var(--yellow); }
 .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px 16px; margin-top: 12px; }
 .row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.row .lab { flex: 1 1 auto; min-width: 0; font-size: 20px; color: var(--fg); }
-.row input[type=number] { width: 7ch; font-family: var(--display); font-size: 9px; background: var(--ink); color: var(--fg); border: 2px solid var(--line); padding: 6px 4px; font-variant-numeric: tabular-nums; }
+.row .lab { flex: 1 1 auto; min-width: 0; font-size: 16px; color: var(--fg); }
+.row input[type=number] { width: 10ch; flex: 0 0 auto; font-family: var(--display); font-size: 9px; background: var(--ink); color: var(--fg); border: 2px solid var(--line); padding: 6px 4px; font-variant-numeric: tabular-nums; }
 .row button { padding: 7px 8px; font-size: 8px; }
 .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
 @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
@@ -221,7 +222,10 @@ const CHL = [
   ['Worst Saturday ever, can’t you see?'],
   ['Odveďte mě domů!', 'Take me home!']
 ];
-const DEF = { intro:0, v1:8.0, pre1:20.5, ch1:30.4, v2:45.2, ch2:57.3, v3:72.0, pre2:97.0, ch3:104.0, brk:131.5, v4:152.2, fin:161.5, outro:178.8 };
+const DEF = { intro:0, v1:8.0, pre1:20.5, ch1:30.4, v2:45.2, ch2:57.3, v3:72.0, pre2:97.0, ch3:104.0, brk:131.5, v4:152.2, fin:161.5, outro:178.8,
+  v4_1:155.6, v4_2:158.3, v4_3:160.0, v4_cnt:156.5, fin_1:166.2, fin_2:169.4, fin_3:172.5, fin_4:175.7 };
+/* fine-tune rows: start time of an individual line inside a section (key, section, line index, label) */
+const SUBS = [['v4_1','v4',1,'Verse 4 · line 2 "Awkward silence"'],['v4_cnt','v4',-1,'Verse 4 · "one" of 1-2-3'],['v4_2','v4',2,'Verse 4 · line 3 "Mom blinks"'],['v4_3','v4',3,'Verse 4 · line 4 "Sup bro"'],['fin_1','fin',1,'Final · "NOT Mega Trapný"'],['fin_2','fin',2,'Final · "Mom, Dad, Sis"'],['fin_3','fin',3,'Final · "Mami, tati"'],['fin_4','fin',4,'Final · "tohle je nejlepší"']];
 const CAPS = {
   intro:['SATURDAY. 7 AM. THE ALARM.','ME. NOT AWAKE.','MOM: “IT’S MUSHROOM DAY!”'],
   v1:['MOM WAKES ME UP','ME: GO AWAY','UNCLE ARRIVES FROM AMERICA','UNCLE: “SUP BRO!”  (1)'],
@@ -271,7 +275,7 @@ const SEC = [
     ['“Oh my god, you guys. Your family is so cool! I LOVE mushroom picking.”'],
     ['And me? I say: “Yeah. Totally. My family is, like, the best.”'],
     ['A hned dodám: „Houbaření je naše rodinná tradice!“', 'And I quickly add: “Mushroom picking is our family tradition!”']] },
-  { id:'v4', label:'Verse 4', scene:'v4', w:[3.4,2.7,1.7,1.5], lines:[
+  { id:'v4', label:'Verse 4', scene:'v4', lines:[
     ['My whole family turns and stares at me,'],
     ['Awkward silence — one, two, three.'],
     ['Mom blinks. Dad blinks. Nobody moves.'],
@@ -287,7 +291,7 @@ const SEC = [
     ['I say: “Of course.”']] }
 ];
 let ST = Object.assign({}, DEF), DUR = 186.8;
-const COUNT_T0 = 156.5, COUNT_STEP = .6; /* when the sung "one, two, three" starts / spacing */
+const COUNT_STEP = .6; /* spacing of the sung "one, two, three"; its start is the v4_cnt row */
 const KEY = 'trapny-times-v7';
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -303,9 +307,13 @@ function build() {
     s.t1 = Math.max(nxt, s.t0 + .5);
     const w = s.w ? s.w : s.lines.map((l, i) => s.scene === 'fin' ? (i === 0 ? 1.5 : 1) : (s.scene === 'intro' || s.scene === 'brk' || s.scene === 'outro') ? l[0].length + 12 : 1), sum = w.reduce((a,b) => a + b, 0);
     let a = s.t0; s.cues = [];
+    const fixed = {}; SUBS.forEach(u => { if (u[1] === s.id && u[2] >= 0) fixed[u[2]] = ST[u[0]]; });
+    const hasFix = Object.keys(fixed).length > 0, starts = [];
+    if (hasFix) { let prev = s.t0; s.lines.forEach((l, k) => { let v = k === 0 ? s.t0 : (fixed[k] != null ? fixed[k] : prev + .3); v = Math.min(Math.max(v, prev + .1), s.t1 - .1 * (s.lines.length - k)); starts.push(v); prev = v; }); }
     s.lines.forEach((l, k) => {
       const d = (s.t1 - s.t0) * w[k] / sum;
-      const c = { text:l[0], tr:l[1] || '', t0:a, t1:a + d, sec:s, li:k };
+      const t0 = hasFix ? starts[k] : a, t1 = hasFix ? (k < s.lines.length - 1 ? starts[k + 1] : s.t1) : a + d;
+      const c = { text:l[0], tr:l[1] || '', t0:t0, t1:t1, sec:s, li:k };
       s.cues.push(c); CUES.push(c); a += d;
     });
   });
@@ -1004,7 +1012,7 @@ SCN.v4 = c => {
     txt('STARE.', 160, 20, 16, C.cream, 'center');
     portrait(40, 160, 2.2, 'girl', { body:false, mood:'panic', t:T, sweat:true });
   } else if (li === 1) {
-    const n = clamp(Math.floor((T - COUNT_T0) / COUNT_STEP) + 1, 1, 3);
+    const n = clamp(Math.floor((T - ST.v4_cnt) / COUNT_STEP) + 1, 1, 3);
     portrait(110, 104, 8, 'girl', { mood:'panic', mouth:'wobble', t:T, red:.5, sweat:true, look:[Math.sin(T * 6) > 0 ? 1 : -1, 0] });
     otxt(String(n), 252, 52, 32 + 8 * pulOf(c.bp), C.yellow, 'center'); sfx(['ONE','TWO','THREE'][n - 1], 252, 120, 16, C.cream, 0);
     const bx = 290 + Math.sin(T * 5) * 14, by = 30 + Math.cos(T * 7) * 10; px(bx, by, 3, 3, C.cream);
@@ -1256,10 +1264,22 @@ SEC.forEach(s => {
   row.append(lab, mk('-', () => setSecTime(s.id, ST[s.id] - .5), s.label + ' earlier'), inp, mk('+', () => setSecTime(s.id, ST[s.id] + .5), s.label + ' later'), mk('NOW', () => setSecTime(s.id, nowT()), 'Set ' + s.label + ' to the current time'));
   rowsEl.appendChild(row); inputs[s.id] = inp;
 });
-function drawTimes() { for (const s of SEC) if (document.activeElement !== inputs[s.id]) inputs[s.id].value = ST[s.id].toFixed(1); }
+function setSubTime(key, v) { ST[key] = Math.round(clamp(v, 0, DUR - .5) * 10) / 10; build(); saveTimes(); drawTimes(); }
+SUBS.forEach(u => {
+  const key = u[0], label = u[3], row = document.createElement('div'); row.className = 'row';
+  const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = label;
+  const inp = document.createElement('input'); inp.type = 'number'; inp.step = '0.1'; inp.id = 't-' + key; inp.setAttribute('aria-label', label + ' start time in seconds');
+  inp.addEventListener('change', () => { const v = parseFloat(inp.value); if (isFinite(v)) setSubTime(key, v); else drawTimes(); });
+  const mk = (t, fn, aria) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'alt'; b.textContent = t; b.setAttribute('aria-label', aria); b.addEventListener('click', fn); return b; };
+  row.append(lab, mk('-', () => setSubTime(key, ST[key] - .1), label + ' earlier'), inp, mk('+', () => setSubTime(key, ST[key] + .1), label + ' later'), mk('NOW', () => setSubTime(key, nowT()), 'Set to the current time'));
+  const after = rowsEl.children[SEC.findIndex(x => x.id === u[1])]; /* placed after its section's row, in order */
+  let ref = inputs[u[1]].parentNode; while (ref.nextSibling && ref.nextSibling.dataset && ref.nextSibling.dataset.sub === u[1]) ref = ref.nextSibling;
+  row.dataset.sub = u[1]; row.classList.add('subrow'); ref.after(row); inputs[key] = inp;
+});
+function drawTimes() { for (const k in inputs) if (document.activeElement !== inputs[k] && ST[k] != null) inputs[k].value = ST[k].toFixed(1); }
 $('resetTimes').addEventListener('click', () => { ST = Object.assign({}, DEF); build(); saveTimes(); drawTimes(); });
 $('copyTimes').addEventListener('click', () => {
-  const out = SEC.map(s => s.id + ': ' + ST[s.id].toFixed(1)).join(', ');
+  const out = SEC.map(s => s.id).concat(SUBS.map(u => u[0])).map(k => k + ': ' + ST[k].toFixed(1)).join(', ');
   const done = () => { $('copied').textContent = 'Copied.'; setTimeout(() => { $('copied').textContent = ''; }, 2000); };
   const fallback = () => { $('copied').textContent = out; };
   try { navigator.clipboard.writeText(out).then(done, fallback); } catch (e) { fallback(); }
