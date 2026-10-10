@@ -1318,7 +1318,7 @@ if (document.fonts && document.fonts.load) {
   document.fonts.load('16px "VT323"', 'ČčĚěŘřŠšŽžŮů').catch(() => {});
 }
 (() => { const fb = $('fs'), fr = document.querySelector('.frame'); const rq = fr.requestFullscreen || fr.webkitRequestFullscreen; if (rq && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) { fb.hidden = false; fb.addEventListener('click', () => { const on = document.fullscreenElement || document.webkitFullscreenElement; if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else rq.call(fr); }); } })();
-if (/[?&]edit\b/.test(location.search)) $('timing').classList.add('show');
+/* timing editor disabled: to re-enable, add the 'show' class to #timing when the URL has ?edit */
 loadAudio();
 requestAnimationFrame(tick);
 })();
