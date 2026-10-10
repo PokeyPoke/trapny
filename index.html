@@ -220,7 +220,7 @@ const CHL = [
   ['Worst Saturday ever, can’t you see?'],
   ['Odveďte mě domů!', 'Take me home!']
 ];
-const DEF = { intro:0, v1:8.0, pre1:20.5, ch1:30.4, v2:45.2, ch2:57.3, v3:72.0, pre2:97.0, ch3:104.0, brk:131.5, v4:148.8, fin:161.5, outro:178.8 };
+const DEF = { intro:0, v1:8.0, pre1:20.5, ch1:30.4, v2:45.2, ch2:57.3, v3:72.0, pre2:97.0, ch3:104.0, brk:131.5, v4:152.2, fin:161.5, outro:178.8 };
 const CAPS = {
   intro:['SATURDAY. 7 AM. THE ALARM.','ME. NOT AWAKE.','MOM: “IT’S MUSHROOM DAY!”'],
   v1:['MOM WAKES ME UP','ME: GO AWAY','UNCLE ARRIVES FROM AMERICA','UNCLE: “SUP BRO!”  (1)'],
@@ -286,7 +286,7 @@ const SEC = [
     ['I say: “Of course.”']] }
 ];
 let ST = Object.assign({}, DEF), DUR = 186.8;
-const KEY = 'trapny-times-v6';
+const KEY = 'trapny-times-v7';
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (s && typeof s === 'object') for (const k in DEF) if (typeof s[k] === 'number' && isFinite(s[k])) ST[k] = s[k];
