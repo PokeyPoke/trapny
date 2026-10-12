@@ -18,6 +18,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Trapný">
 
+<script>
+/* language: ?lang=cs|en, else the visitor's saved choice, else Czech for cs/sk browsers, English for everyone else */
+(() => { let l = null;
+  try { const q = new URLSearchParams(location.search).get('lang'); if (q === 'cs' || q === 'en') { l = q; localStorage.setItem('trapny-lang', q); } else { const v = localStorage.getItem('trapny-lang'); if (v === 'cs' || v === 'en') l = v; } } catch (e) {}
+  if (!l) l = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']).some(x => /^(cs|sk)\b/i.test(x)) ? 'cs' : 'en';
+  document.documentElement.lang = l; window.TRAPNY_LANG = l; })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
@@ -106,18 +113,30 @@ details.timing.show { display: block; }
 .merch .fine { grid-column: 1 / -1; margin: 0; color: var(--dim); font-size: 18px; line-height: 1.1; }
 @media (prefers-reduced-motion: reduce) { .karel { animation: none; } }
 @media (max-width: 520px) { .merch h2 { font-size: 12px; } .karel { width: 60px; height: 66px; } .karel-says { font-size: 8px; } }
+/* Czech mode: Press Start 2P has no Czech capitals (Ř, Č, Ě...), so the pixel font becomes Silkscreen,
+   scaled 140% so its capitals match Press Start 2P's height */
+@font-face { font-family: "Pixel CZ"; src: url(fonts/silkscreen-latin.woff2) format("woff2"); size-adjust: 140%; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Pixel CZ"; src: url(fonts/silkscreen-latin-ext.woff2) format("woff2"); size-adjust: 140%; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+html[lang=cs] { --display: "Pixel CZ", ui-monospace, Menlo, Consolas, monospace; }
+.head-r { display: flex; align-items: center; gap: 12px; }
+.lang { padding: 8px 10px; font-size: 10px; }
+.star-wrap { position: fixed; right: max(14px, calc((100vw - 1032px) / 2 - 150px)); bottom: 18px; z-index: 50; }
+.star-wrap[hidden] { display: none; }
+.star-x { position: absolute; top: -6px; right: -6px; z-index: 1; width: 28px; height: 28px; min-height: 0; padding: 0; border-radius: 50%; font-family: var(--body); font-size: 22px; line-height: 1; color: var(--fg); background: var(--ink); box-shadow: 2px 2px 0 #000; border: 2px solid var(--fg); }
+.star-x:hover { background: var(--pink); color: var(--ink); }
 /* floating "MERCH!" starburst, fixed bottom-right over the page */
-.star { position: fixed; right: max(14px, calc((100vw - 1032px) / 2 - 150px)); bottom: 18px; z-index: 50; width: 128px; height: 128px; display: grid; place-items: center; text-decoration: none; filter: drop-shadow(4px 4px 0 #000); animation: star-wobble 2.4s ease-in-out infinite; }
+.star { position: relative; width: 128px; height: 128px; display: grid; place-items: center; text-decoration: none; filter: drop-shadow(4px 4px 0 #000); animation: star-wobble 2.4s ease-in-out infinite; }
 .star svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: star-spin 14s linear infinite; }
-.star-txt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; transform: rotate(-14deg); font-family: var(--display); color: var(--ink); }
+.star-txt { position: relative; display: flex; flex-direction: column; align-items: center; transform: rotate(-14deg); font-family: var(--display); color: var(--ink); }
 .star-txt b { font-weight: 400; font-size: 13px; color: var(--pink); text-shadow: 2px 2px 0 var(--ink); }
-.star-txt i { font-style: normal; font-size: 7px; }
 .star:hover, .star:focus-visible { animation-duration: .5s; }
 .star:focus-visible { outline: 3px solid var(--cyan); outline-offset: 4px; border-radius: 50%; }
 @keyframes star-spin { to { transform: rotate(360deg); } }
 @keyframes star-wobble { 0%, 100% { transform: scale(1) rotate(-6deg); } 50% { transform: scale(1.12) rotate(6deg); } }
 @media (max-width: 1300px) { .star { width: 104px; height: 104px; } .star-txt b { font-size: 11px; } }
-@media (max-width: 520px) { .star { width: 92px; height: 92px; right: 10px; bottom: 10px; } .star-txt b { font-size: 10px; } .star-txt i { font-size: 6px; } }
+@media (max-width: 520px) { .star-wrap { right: 10px; bottom: 10px; } .star { width: 92px; height: 92px; } .star-txt b { font-size: 10px; } }
 @media (prefers-reduced-motion: reduce) { .star, .star svg { animation: none; } }
 .foot { margin-top: 20px; padding-top: 16px; border-top: 3px solid var(--line); text-align: center; font-family: var(--display); font-size: 10px; color: var(--dim); letter-spacing: 1px; }
 .foot b { color: var(--pink); font-weight: 400; }
@@ -172,14 +191,14 @@ button { -webkit-user-select: none; user-select: none; }
 <main class="wrap">
   <header class="head">
     <h1>MEGA TRAPNÝ</h1>
-    <span class="tag">pixel music video · synced to the song</span>
+    <div class="head-r"><span class="tag" data-cs="pixelový klip · synchronizovaný s písničkou">pixel music video · synced to the song</span><button type="button" id="lang" class="alt lang">CZ</button></div>
   </header>
 
-  <section class="frame" aria-label="Music video">
+  <section class="frame" aria-label="Music video" data-cs-aria="Hudební klip">
     <div class="cap" id="cap" aria-live="off">&nbsp;</div>
     <div class="stage" id="stage">
-      <canvas id="cv" role="img" aria-label="Pixel-art music video: a girl in a hoodie suffers through a family mushroom-picking trip until the most popular girl at school says she loves mushroom picking"></canvas>
-      <div class="big-play" id="bigplay"><span id="bigplaytxt">LOADING SONG...</span></div>
+      <canvas id="cv" role="img" data-cs-aria="Pixelový hudební klip: holka v mikině přetrpí rodinné houbaření, dokud nejoblíbenější holka ze školy neřekne, že houbaření miluje" aria-label="Pixel-art music video: a girl in a hoodie suffers through a family mushroom-picking trip until the most popular girl at school says she loves mushroom picking"></canvas>
+      <div class="big-play" id="bigplay"><span id="bigplaytxt" data-cs="NAČÍTÁM PÍSNIČKU...">LOADING SONG...</span></div>
     </div>
     <div class="sub" id="sub" hidden>
       <p class="en" id="en"></p>
@@ -188,14 +207,14 @@ button { -webkit-user-select: none; user-select: none; }
   </section>
 
   <div class="bar">
-    <button type="button" id="play">PLAY</button>
-    <button type="button" id="restart" class="alt">RESTART</button>
-    <button type="button" id="fs" class="alt" hidden>FULLSCREEN</button>
-    <input type="range" id="scrub" min="0" max="187" step="0.01" value="0" aria-label="Seek">
+    <button type="button" id="play" data-cs="PŘEHRÁT">PLAY</button>
+    <button type="button" id="restart" class="alt" data-cs="ZNOVU">RESTART</button>
+    <button type="button" id="fs" class="alt" hidden data-cs="CELÁ OBRAZOVKA">FULLSCREEN</button>
+    <input type="range" id="scrub" min="0" max="187" step="0.01" value="0" aria-label="Seek" data-cs-aria="Posun v písničce">
     <span class="time" id="time">0:00 / 3:07</span>
   </div>
 
-  <div class="chips" id="chips" aria-label="Jump to section"></div>
+  <div class="chips" id="chips" aria-label="Jump to section" data-cs-aria="Přejít na část"></div>
 
   <details class="timing" id="timing">
     <summary>TIMING · fix a section by ear</summary>
@@ -211,26 +230,136 @@ button { -webkit-user-select: none; user-select: none; }
   <p class="note" id="status"></p>
 
   <section class="merch" aria-labelledby="mt">
-    <h2 id="mt">KAREL&#8217;S OFFICIAL GIFT SHOP</h2>
+    <h2 id="mt" data-cs="KARLŮV OFICIÁLNÍ OBCHOD">KAREL&#8217;S OFFICIAL GIFT SHOP</h2>
     <svg class="karel" viewBox="0 0 10 11" aria-hidden="true"><rect x="0" y="1" width="10" height="5" fill="#14102b"/><rect x="1" y="0" width="8" height="2" fill="#14102b"/><rect x="2" y="5" width="6" height="6" fill="#14102b"/><rect x="1" y="1" width="8" height="2" fill="#e63946"/><rect x="0" y="3" width="10" height="2" fill="#e63946"/><rect x="2" y="2" width="2" height="1" fill="#fff"/><rect x="6" y="1" width="2" height="1" fill="#fff"/><rect x="4" y="3" width="2" height="1" fill="#fff"/><rect x="8" y="3" width="1" height="1" fill="#fff"/><rect x="1" y="4" width="1" height="1" fill="#fff"/><rect x="3" y="5" width="4" height="4" fill="#fff3e0"/><rect x="2" y="9" width="6" height="1" fill="#e8d7b5"/><rect x="4" y="6" width="1" height="1" fill="#14102b"/><rect x="6" y="6" width="1" height="1" fill="#14102b"/><rect x="3" y="7" width="1" height="1" fill="#ff9aa8"/><rect x="7" y="7" width="1" height="1" fill="#ff9aa8"/><rect x="4" y="8" width="3" height="1" fill="#14102b"/></svg>
-    <p class="karel-says">Hello. I am a mushroom. I cannot legally sell you anything. But the shirts are over there.</p>
-    <a class="go" href="https://trapnycz.myspreadshop.net/" target="_blank" rel="noopener">BUY THE SHAME &#8594;</a>
-    <p class="fine">Shirts, hoodies, a mug and a sticker, sold at cost: nobody makes a single koruna, not even Karel. Side effects may include your mom saying it&#8217;s &#8220;cute&#8221;.</p>
+    <p class="karel-says" data-cs="Ahoj. Jsem houba. Ze zákona vám nemůžu nic prodat. Ale trička jsou tamhle.">Hello. I am a mushroom. I cannot legally sell you anything. But the shirts are over there.</p>
+    <a class="go" data-cs="KUP SI TRAPNOST →" href="https://trapnycz.myspreadshop.net/" target="_blank" rel="noopener">BUY THE SHAME &#8594;</a>
+    <p class="fine" data-cs="Trička, mikiny, hrnky a samolepky za výrobní cenu: nikdo na tom nevydělá ani korunu, ani Karel. Mezi vedlejší účinky patří, že máma řekne, že je to „roztomilý“.">Shirts, hoodies, a mug and a sticker, sold at cost: nobody makes a single koruna, not even Karel. Side effects may include your mom saying it&#8217;s &#8220;cute&#8221;.</p>
   </section>
   <section class="game-sec" aria-labelledby="gt">
-    <h2 id="gt">MUSHROOM PICKING SIMULATOR</h2>
-    <p class="note"><span class="kbd-hint">Move with the arrow keys or WASD, or click where you want to go. </span><span class="touch-hint">Tap the screen or hold the arrow buttons to move. </span>The golden mushroom is Karel (worth 5). Every few mushrooms, someone pops out of the ground. Pick 25 mushrooms to finish.</p>
-    <div class="gframe"><canvas id="game" role="img" aria-label="Mushroom picking game. Move the girl to pick mushrooms. Every three or four mushrooms the uncle pops out of the ground and says Sup bro."></canvas></div>
-    <div class="dpad" id="dpad" role="group" aria-label="Move buttons"><button type="button" class="alt" data-k="up" aria-label="Move up">&#9650;</button><button type="button" class="alt" data-k="left" aria-label="Move left">&#9664;</button><button type="button" class="alt" data-k="down" aria-label="Move down">&#9660;</button><button type="button" class="alt" data-k="right" aria-label="Move right">&#9654;</button></div>
-    <div class="grow"><button type="button" id="gmusic" class="alt" aria-pressed="false">MUSIC: OFF</button><button type="button" id="greplay" class="alt" hidden>PLAY AGAIN</button><button type="button" id="gmute" class="alt" aria-pressed="false">SOUND: ON</button></div>
+    <h2 id="gt" data-cs="SIMULÁTOR HOUBAŘENÍ">MUSHROOM PICKING SIMULATOR</h2>
+    <p class="note" data-cs-html="&lt;span class=&quot;kbd-hint&quot;&gt;Pohybuj se šipkami nebo WASD, nebo klikni, kam chceš jít. &lt;/span&gt;&lt;span class=&quot;touch-hint&quot;&gt;Ťukni na obrazovku nebo drž šipky. &lt;/span&gt;Zlatá houba je Karel (za 5). Každých pár hub někdo vyleze ze země. Nasbírej 25 hub a máš hotovo."><span class="kbd-hint">Move with the arrow keys or WASD, or click where you want to go. </span><span class="touch-hint">Tap the screen or hold the arrow buttons to move. </span>The golden mushroom is Karel (worth 5). Every few mushrooms, someone pops out of the ground. Pick 25 mushrooms to finish.</p>
+    <div class="gframe"><canvas id="game" role="img" data-cs-aria="Hra na houbaření. Choď s holkou a sbírej houby. Každé tři čtyři houby vyleze ze země strýc a řekne Sup bro." aria-label="Mushroom picking game. Move the girl to pick mushrooms. Every three or four mushrooms the uncle pops out of the ground and says Sup bro."></canvas></div>
+    <div class="dpad" id="dpad" role="group" aria-label="Move buttons" data-cs-aria="Ovládání"><button type="button" class="alt" data-k="up" aria-label="Move up" data-cs-aria="Nahoru">&#9650;</button><button type="button" class="alt" data-k="left" aria-label="Move left" data-cs-aria="Doleva">&#9664;</button><button type="button" class="alt" data-k="down" aria-label="Move down" data-cs-aria="Dolů">&#9660;</button><button type="button" class="alt" data-k="right" aria-label="Move right" data-cs-aria="Doprava">&#9654;</button></div>
+    <div class="grow"><button type="button" id="gmusic" class="alt" aria-pressed="false" data-cs="HUDBA: VYP">MUSIC: OFF</button><button type="button" id="greplay" class="alt" hidden data-cs="HRÁT ZNOVU">PLAY AGAIN</button><button type="button" id="gmute" class="alt" aria-pressed="false" data-cs="ZVUK: ZAP">SOUND: ON</button></div>
   </section>
-  <a class="star" href="https://trapnycz.myspreadshop.net/" target="_blank" rel="noopener" aria-label="Merch shop: sold at cost">
+  <div class="star-wrap" id="starWrap">
+  <a class="star" href="https://trapnycz.myspreadshop.net/" target="_blank" rel="noopener" aria-label="Merch shop" data-cs-aria="Obchod s merchem">
     <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50.0,1.0 56.4,13.6 66.8,4.0 68.5,18.0 81.5,12.5 78.3,26.2 92.4,25.5 84.8,37.3 98.3,41.5 87.0,50.0 98.3,58.5 84.8,62.7 92.4,74.5 78.3,73.8 81.5,87.5 68.5,82.0 66.8,96.0 56.4,86.4 50.0,99.0 43.6,86.4 33.2,96.0 31.5,82.0 18.5,87.5 21.7,73.8 7.6,74.5 15.2,62.7 1.7,58.5 13.0,50.0 1.7,41.5 15.2,37.3 7.6,25.5 21.7,26.2 18.5,12.5 31.5,18.0 33.2,4.0 43.6,13.6" fill="#ffe14d" stroke="#14102b" stroke-width="3" stroke-linejoin="round"/></svg>
-    <span class="star-txt"><b>MERCH!</b><i>AT COST</i></span>
+    <span class="star-txt"><b>MERCH!</b></span>
   </a>
+  <button type="button" class="star-x" id="starX" aria-label="Hide the merch star" data-cs-aria="Skrýt hvězdu s merchem">×</button>
+  </div>
   <footer class="foot">by <b>gargamel</b></footer>
 </main>
 
+<script>
+/* ================= Czech / English =================
+   The site picks Czech for visitors whose browser prefers Czech or Slovak, English for everyone else.
+   The CZ/EN button in the header overrides that and is remembered (localStorage 'trapny-lang').
+   L(s) returns the Czech version of an English UI/caption/canvas string (or s unchanged in English
+   or when there is no translation). SUB_CS gives Czech translations for the English sung lines. */
+(() => {
+const CS = {
+  // controls and status
+  'PLAY':'PŘEHRÁT', 'PAUSE':'PAUZA', 'RESTART':'ZNOVU', 'FULLSCREEN':'CELÁ OBRAZOVKA',
+  'LOADING SONG...':'NAČÍTÁM PÍSNIČKU...', 'PRESS PLAY':'ZMÁČKNI PŘEHRÁT',
+  'MUSIC: ON':'HUDBA: ZAP', 'MUSIC: OFF':'HUDBA: VYP', 'SOUND: ON':'ZVUK: ZAP', 'SOUND: OFF':'ZVUK: VYP',
+  'The song could not load here, so the video plays silently.':'Písnička se tu nenačetla, klip tedy poběží bez zvuku.',
+  'Your browser blocked the sound. Press PLAY again.':'Prohlížeč zablokoval zvuk. Zmáčkni znovu PŘEHRÁT.',
+  // section chips
+  'Intro':'Intro', 'Verse 1':'Sloka 1', 'Verse 2':'Sloka 2', 'Verse 3':'Sloka 3', 'Verse 4':'Sloka 4', 'Pre':'Předrefrén',
+  'Chorus 1':'Refrén 1', 'Chorus 2':'Refrén 2', 'Chorus 3':'Refrén 3', 'Slow pre':'Zpomalení', 'Scratch!':'Skříp!', 'Final':'Finále', 'Outro':'Outro',
+  // caption bar
+  'SATURDAY. 7 AM. THE ALARM.':'SOBOTA. 7 RÁNO. BUDÍK.', 'ME. NOT AWAKE.':'JÁ. JEŠTĚ SPÍM.', 'MOM: “IT’S MUSHROOM DAY!”':'MÁMA: „JDEME NA HOUBY!“',
+  'MOM WAKES ME UP':'MÁMA MĚ BUDÍ', 'ME: GO AWAY':'JÁ: JDI PRYČ', 'UNCLE ARRIVES FROM AMERICA':'STRÝC PŘIJÍŽDÍ Z AMERIKY',
+  'UNCLE: “SUP BRO!”  (1)':'STRÝC: „SUP BRO!“  (1)', 'UNCLE: “SUP BRO?”  (2)':'STRÝC: „SUP BRO?“  (2)', 'UNCLE: “SUP BRO!”  (3)':'STRÝC: „SUP BRO!“  (3)',
+  'EYE ROLL. HOOD UP. HEADPHONES ON.':'OČI V SLOUP. KAPUCE. SLUCHÁTKA.', 'I TRY TO RUN. MOM CATCHES ME.':'ZKUSÍM UTÉCT. MÁMA MĚ CHYTÍ.',
+  'I HIDE IN A BUSH':'SCHOVÁM SE DO KEŘE', 'DAD: SOCKS + SANDALS = TRADITION':'TÁTA: PONOŽKY + SANDÁLY = TRADICE',
+  'DAD IS PROUD. I AM DYING.':'TÁTA JE HRDÝ. JÁ UMÍRÁM.', 'DAD NAMED HIS MUSHROOM KAREL':'TÁTA POJMENOVAL HOUBU KAREL',
+  'DAD TAKES A SELFIE WITH KAREL':'TÁTA SI FOTÍ SELFIE S KARLEM', 'ME: “PLEASE DON’T TELL.”':'JÁ: „NIKOMU TO NEŘÍKEJ.“',
+  'ANEŽKA IS AT THE CREEK!':'U POTOKA JE ANEŽKA!', 'THE MOST POPULAR GIRL IN SCHOOL':'NEJOBLÍBENĚJŠÍ HOLKA VE ŠKOLE',
+  'DAD: “COME MEET KAREL!”':'TÁTA: „POJĎ SE SEZNÁMIT S KARLEM!“', 'MY SOUL LEAVES MY BODY':'DUŠE MI OPOUŠTÍ TĚLO',
+  'MOM RUNS IN WITH A HAT':'MÁMA PŘIBĚHNE S ČEPICÍ', 'HAT ON MY HEAD, IN FRONT OF HER':'ČEPICE NA HLAVĚ. PŘED NÍ.',
+  'ANEŽKA JUST STARES':'ANEŽKA JEN ZÍRÁ', 'I DIG A HOLE TO HIDE IN':'VYHRABU SI DÍRU A ZALEZU', 'I HIDE IN THE MOSS':'SCHOVÁM SE DO MECHU',
+  'RECORD SCRATCH!':'SKŘÍÍÍP!', 'ANEŽKA SMILES':'ANEŽKA SE USMÍVÁ', 'ANEŽKA: “YOUR FAMILY IS SO COOL!”':'ANEŽKA: „VAŠE RODINA JE TAK SUPER!“',
+  'ME: “TOTALLY. BEST FAMILY EVER.”':'JÁ: „JASNĚ. NEJLEPŠÍ RODINA.“', '“FAMILY TRADITION!”':'„RODINNÁ TRADICE!“',
+  'MY FAMILY STARES AT ME':'RODINA NA MĚ ZÍRÁ', 'AWKWARD SILENCE: 1, 2, 3':'TRAPNÉ TICHO: 1, 2, 3',
+  'MOM + DAD BLINK. NOBODY MOVES.':'MÁMA A TÁTA MRKAJÍ. NIKDO SE NEHNE.', 'ANEŽKA IS WATCHING...':'ANEŽKA SE DÍVÁ...',
+  'NOT TRAPNÝ: MEGA FUN!':'NE TRAPNÝ: MEGA ZÁBAVA!', 'CONGA LINE! EVERYONE!':'CONGA! VŠICHNI!',
+  'GROUP HUG (THEY ARE CONFUSED)':'SKUPINOVÉ OBJETÍ (NECHÁPOU)', 'LOOK! A GIANT MUSHROOM!':'HELE! OBŘÍ HOUBA!',
+  'GROUP SELFIE WITH KAREL':'SKUPINOVÉ SELFIE S KARLEM', 'POSTED: 1.2M LIKES':'NAHRÁNO: 1,2 MIL. LAJKŮ', '“OF COURSE.”':'„JASNĚ.“',
+  'THE FAMILY DANCES. I DIE INSIDE.':'RODINA TANCUJE. UVNITŘ UMÍRÁM.', 'HIDING MY FACE':'SCHOVÁVÁM OBLIČEJ', 'PURE RAGE':'ČISTÝ VZTEK',
+  'TANTRUM ON THE GROUND':'ZÁCHVAT NA ZEMI', 'HIDING BEHIND A TREE':'SCHOVANÁ ZA STROMEM', 'EYE ROLL':'OČI V SLOUP',
+  'SWEATING FROM EMBARRASSMENT':'POTÍM SE HANBOU',
+  // words drawn inside the video
+  'BRRRING!':'CRRRRR!', '5 MORE MINUTES...':'JEŠTĚ 5 MINUT...', 'GET UP!':'VSTÁVEJ!', 'GO AWAY.':'JDI PRYČ.', 'HONK!':'TÚÚÚ!',
+  'HOOD UP':'KAPUCE', 'PLUG IN':'SLUCHÁTKA', 'MOM!!':'MAMI!!', 'LONG GONE...':'PRYČ ODSUD...', 'SHH.':'PSST.',
+  'DON’T LOOK!':'NEDÍVEJ SE!', 'AT ME!':'NA MĚ!', 'WORST!':'NEJHORŠÍ!', 'NOOOO!':'NEEEE!', 'NOBODY SEES ME':'NIKDO MĚ NEVIDÍ',
+  'SO TRAPNÝ':'TAK TRAPNÝ', 'SOCKS?!':'PONOŽKY?!', 'PLEASE DON’T TELL.':'NIKOMU TO NEŘÍKEJ.', 'MEET KAREL!':'TO JE KAREL!',
+  'FAREWELL':'SBOHEM', 'DIG DIG DIG':'HRAB HRAB HRAB', 'MOSS':'MECH', 'SCRATCH!':'SKŘÍP!', 'I LOVE MUSHROOM PICKING!':'MILUJU HOUBAŘENÍ!',
+  'TOTALLY!':'JASNĚ!', 'TOTALLY.':'JASNĚ.', 'FAMILY TRADITION!':'RODINNÁ TRADICE!', 'STARE.':'ZÍRÁNÍ.', 'ONE':'JEDNA', 'TWO':'DVA', 'THREE':'TŘI',
+  'MEGA FUN!':'MEGA ZÁBAVA!', 'COME ON!':'POJĎTE!', 'COME CLOSER':'POJĎTE BLÍŽ', 'BEST DAY!':'NEJLEPŠÍ DEN!', 'POSTED!':'NAHRÁNO!',
+  'OF COURSE.':'JASNĚ.', 'TRAPNÝ-METER: 100%':'TRAPNOMĚR: 100 %', 'THE END':'KONEC',
+  'ME':'JÁ', 'MOM':'MÁMA', 'DAD':'TÁTA', 'UNCLE':'STRÝC', 'SIS':'SÉGRA',
+  // mushroom game
+  'PICKED ':'HOUBY ', 'FAMILY TRADITION UNLOCKED':'RODINNÁ TRADICE ODEMČENA', 'MUSHROOMS  ':'HOUBY      ', 'SUP BROS   ':'SUP BRO    ',
+  'TIME       ':'ČAS        ', 'BEST TIME  ':'REKORD     ', '  NEW!':'  NOVÝ!', 'TAP TO PLAY AGAIN':'ŤUKNI A HRAJ ZNOVU',
+  'CLICK OR PRESS ENTER':'KLIKNI NEBO ENTER', 'GRAB THE MUSHROOMS...':'SBÍREJ HOUBY...', 'TAP OR USE THE BUTTONS':'ŤUKNI NEBO POUŽIJ ŠIPKY',
+  'ARROWS / WASD OR CLICK TO MOVE':'ŠIPKY / WASD NEBO KLIKNI'
+};
+/* Czech translations shown under the English sung lines (Czech lines need none) */
+const SUB_CS = {
+  'It’s Mega Trapný, mega trapný':'Je to mega trapný, mega trapný', 'Forest, family, fakt hrozný':'Les, rodina, fakt hrozný',
+  'It’s Mega Trapný, don’t look at me':'Je to mega trapný, nedívej se na mě', 'Worst Saturday ever, can’t you see?':'Nejhorší sobota vůbec, copak to nevidíš?',
+  'Mom says “Get up, it’s mushroom day!”':'Máma říká: „Vstávej, jdeme na houby!“', 'I say “Please, just go away.”':'Já na to: „Prosím tě, jdi pryč.“',
+  'My American uncle will be there — here we go!':'Bude tam i můj americký strýc — a je to tady!',
+  'How many times will that idiot say “Sup bro!”':'Kolikrát ten idiot zase řekne „Sup bro!“?',
+  'Eye roll, hood up, headphones on,':'Oči v sloup, kapuce, sluchátka na uších,', 'Wish I could just be long gone.':'Kéž bych byla dávno pryč.',
+  'Dad’s got a mushroom, he named it Karel,':'Táta má houbu a pojmenoval ji Karel,', 'Takes a selfie with it. Please don’t tell.':'Fotí si s ní selfie. Prosím, nikomu to neříkej.',
+  'Wait — is that Anežka? Over by the creek?':'Počkej — to je Anežka? Tam u potoka?',
+  'The most popular girl in school — I can’t even speak!':'Nejoblíbenější holka ve škole — nemůžu ani mluvit!',
+  'Dad waves: “Is that your friend? Come meet Karel!”':'Táta mává: „To je tvoje kamarádka? Pojď, seznam se s Karlem!“',
+  'My soul just left my body. Farewell.':'Duše mi právě opustila tělo. Sbohem.', 'Anežka stares, the silence starts to grow,':'Anežka zírá, ticho houstne,',
+  'My uncle grins and says: “Sup bro!”':'Strýc se zakření a řekne: „Sup bro!“', 'And then Anežka smiles and says:':'A pak se Anežka usměje a řekne:',
+  '“Oh my god, you guys. Your family is so cool! I LOVE mushroom picking.”':'„Panebože, lidi. Vaše rodina je tak super! Já MILUJU houbaření.“',
+  'And me? I say: “Yeah. Totally. My family is, like, the best.”':'A já? Řeknu: „Jo. Jasně. Moje rodina je prostě nejlepší.“',
+  'My whole family turns and stares at me,':'Celá rodina se otočí a zírá na mě,', 'Awkward silence — one, two, three.':'Trapné ticho — jedna, dva, tři.',
+  'Mom blinks. Dad blinks. Nobody moves.':'Máma mrkne. Táta mrkne. Nikdo se nehne.', 'And my uncle goes: “Sup bro!”':'A strýc na to: „Sup bro!“',
+  'It’s NOT Mega Trapný, it’s Mega Fun!':'NENÍ to mega trapný, je to mega zábava!', 'Mom, Dad, Sis, come on, everyone!':'Mami, tati, ségro, pojďte všichni!',
+  'Anežka asks: “Can you and I take a group selfie with Karel?”':'Anežka se ptá: „Uděláme si spolu skupinové selfie s Karlem?“',
+  'I say: “Of course.”':'Já na to: „Jasně.“'
+};
+const cs = window.TRAPNY_LANG === 'cs', has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+window.L = s => (cs && typeof s === 'string' && has(CS, s)) ? CS[s] : s;
+window.SUB_L = (text, tr) => cs ? (has(SUB_CS, text) ? SUB_CS[text] : '') : tr;
+
+// static page text: data-cs (text), data-cs-html (markup), data-cs-aria (aria-label)
+if (cs) {
+  document.querySelectorAll('[data-cs]').forEach(e => { e.textContent = e.dataset.cs; });
+  document.querySelectorAll('[data-cs-html]').forEach(e => { e.innerHTML = e.dataset.csHtml; });
+  document.querySelectorAll('[data-cs-aria]').forEach(e => { e.setAttribute('aria-label', e.dataset.csAria); });
+  document.title = 'Mega Trapný · pixelový klip + houbařská hra';
+  const md = document.querySelector('meta[name=description]');
+  if (md) md.content = 'Pixelový hudební klip k písničce Mega Trapný a malá hra na houbaření. Pozor na strýce.';
+}
+// CZ/EN switch
+const lb = document.getElementById('lang');
+if (lb) {
+  lb.textContent = cs ? 'EN' : 'CZ';
+  lb.setAttribute('aria-label', cs ? 'Switch to English' : 'Přepnout do češtiny');
+  lb.lang = cs ? 'en' : 'cs';
+  lb.addEventListener('click', () => {
+    try { localStorage.setItem('trapny-lang', cs ? 'en' : 'cs'); } catch (e) {}
+    const u = new URL(location.href); u.searchParams.delete('lang'); location.replace(u.href);
+  });
+}
+// floating MERCH! star: × hides it for good in this browser
+const sw = document.getElementById('starWrap'), sx = document.getElementById('starX');
+try { if (localStorage.getItem('trapny-star-hidden') === '1') sw.hidden = true; } catch (e) {}
+if (sx) sx.addEventListener('click', () => { sw.hidden = true; try { localStorage.setItem('trapny-star-hidden', '1'); } catch (e) {} });
+})();
+</script>
 <script>
 (() => {
 'use strict';
@@ -247,7 +376,8 @@ const lerp = (a,b,t) => a + (b - a) * t;
 const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const popK = t => t < 0 ? 0 : t < .2 ? t / .2 * 1.2 : t < .35 ? 1.2 - .2 * ((t - .2) / .15) : 1;
 const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-const FONT = s => s + 'px "Press Start 2P", ui-monospace, monospace';
+/* canvas pixel font: Press Start 2P, or the Czech-capable "Pixel CZ" in Czech mode and for any word with Czech letters */
+const FONT = (s, str) => (window.TRAPNY_LANG === 'cs' || (str && /[\u00C0-\u024F]/.test(str))) ? s + 'px "Pixel CZ", ui-monospace, monospace' : s + 'px "Press Start 2P", ui-monospace, monospace';
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const hex2 = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)];
 const mix = (a,b,t) => { const A = hex2(a), B = hex2(b); return '#' + A.map((v,i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2,'0')).join(''); };
@@ -367,12 +497,12 @@ function cueAt(T) {
 /* ================= primitives ================= */
 function px(x,y,w,h,c) { if (w <= 0 || h <= 0) return; const x0 = Math.round(x), y0 = Math.round(y); ctx.fillStyle = c; /* snap both edges to the grid so adjacent rects never leave 1px seams */ ctx.fillRect(x0, y0, Math.max(1, Math.round(x + w) - x0), Math.max(1, Math.round(y + h) - y0)); }
 function txt(s,x,y,size,color,align,sh) {
-  ctx.font = FONT(size); ctx.textBaseline = 'top'; ctx.textAlign = align || 'left';
+  s = L(s); ctx.font = FONT(size, s); ctx.textBaseline = 'top'; ctx.textAlign = align || 'left';
   if (sh !== null) { ctx.fillStyle = sh || '#000'; const o = Math.max(1, Math.round(size / 8)); ctx.fillText(s, Math.round(x) + o, Math.round(y) + o); }
   ctx.fillStyle = color; ctx.fillText(s, Math.round(x), Math.round(y));
 }
 function otxt(s,x,y,size,color,align) {
-  ctx.font = FONT(size); ctx.textBaseline = 'top'; ctx.textAlign = align || 'center';
+  s = L(s); ctx.font = FONT(size, s); ctx.textBaseline = 'top'; ctx.textAlign = align || 'center';
   const o = Math.max(1, Math.round(size / 8));
   ctx.fillStyle = C.ink;
   for (const [dx,dy] of [[-o,0],[o,0],[0,-o],[0,o],[o,o],[-o,o],[o,-o],[-o,-o]]) ctx.fillText(s, Math.round(x) + dx, Math.round(y) + dy);
@@ -387,7 +517,7 @@ function disc(cx,cy,rad,c) { for (let dy = -rad; dy <= rad; dy++) { const w = Ma
 function ring(cx,cy,r,th,c) { ctx.strokeStyle = c; ctx.lineWidth = th; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); }
 function bubble(t,x,y,o) {
   o = o || {}; const k = o.k == null ? 1 : o.k; if (k <= 0) return;
-  ctx.font = FONT(8);
+  t = L(t); ctx.font = FONT(8, t);
   const w = Math.ceil(ctx.measureText(t).width) + 10, h = 15;
   const bx = clamp(Math.round(x - w / 2), 2, W - w - 2), by = Math.round(y - h - 5);
   const tx = clamp(Math.round(x), bx + 6, bx + w - 6), bg = o.bg || C.cream;
@@ -583,7 +713,7 @@ function person(x,y,s,who,o) {
   if (o.sweat) { const q = Math.floor((t * 2) % 3); r(10,1 + q,1,2,C.cyan); }
   if (s >= 3 && !o.noTag) {
     const nm = { girl:'ME', mom:'MOM', dad:'DAD', uncle:'UNCLE', sis:'SIS', kris:'ANEŽKA' }[who], ty = y + 16 * s + 3;
-    if (ty < H - 10) { ctx.font = FONT(8); const tw = Math.ceil(ctx.measureText(nm).width) + 6, tx = Math.round(x + 6 * s - tw / 2); px(tx, ty, tw, 11, C.ink); px(tx + 1, ty + 1, tw - 2, 9, who === 'girl' ? C.pink : '#3a2a7a'); txt(nm, tx + 3, ty + 2, 8, C.cream, 'left', null); }
+    if (ty < H - 10) { ctx.font = FONT(8, L(nm)); const tw = Math.ceil(ctx.measureText(L(nm)).width) + 6, tx = Math.round(x + 6 * s - tw / 2); px(tx, ty, tw, 11, C.ink); px(tx + 1, ty + 1, tw - 2, 9, who === 'girl' ? C.pink : '#3a2a7a'); txt(nm, tx + 3, ty + 2, 8, C.cream, 'left', null); }
   }
 }
 
@@ -1190,7 +1320,7 @@ function camFor(c) {
   return { z:z, rot:rot, dx:dx, dy:dy };
 }
 let capLast = '';
-function setCap(s) { if (s !== capLast) { capLast = s; $('cap').textContent = s || ' '; } }
+function setCap(s) { if (s !== capLast) { capLast = s; $('cap').textContent = L(s) || ' '; } }
 function capFor(c) {
   const s = c.sec, id = s.id;
   if (id === 'intro') return CAPS.intro[c.ss < 2.5 ? 0 : (c.ss < 4.9 ? 1 : 2)];
@@ -1235,11 +1365,11 @@ function renderFrame() {
 /* ================= audio + clock ================= */
 const au = new Audio(); au.preload = 'auto'; au.loop = true;
 let audioOK = false, audioState = 'loading', internalLast = 0;
-function setStatus(msg) { $('status').textContent = msg || ''; }
+function setStatus(msg) { $('status').textContent = L(msg) || ''; }
 function updateBig() {
   const bp = $('bigplay'), tx = $('bigplaytxt');
-  if (audioState === 'loading') { bp.hidden = false; tx.textContent = 'LOADING SONG...'; }
-  else if (!playing && T < .05) { bp.hidden = false; tx.textContent = 'PRESS PLAY'; }
+  if (audioState === 'loading') { bp.hidden = false; tx.textContent = L('LOADING SONG...'); }
+  else if (!playing && T < .05) { bp.hidden = false; tx.textContent = L('PRESS PLAY'); }
   else bp.hidden = true;
 }
 async function loadAudio() {
@@ -1266,7 +1396,7 @@ function play() {
   syncPlay();
 }
 function pause() { playing = false; if (audioOK) au.pause(); syncPlay(); }
-function syncPlay() { $('play').textContent = playing ? 'PAUSE' : 'PLAY'; const gm = $('gmusic'); if (gm) { gm.textContent = playing ? 'MUSIC: ON' : 'MUSIC: OFF'; gm.setAttribute('aria-pressed', String(playing)); } updateBig(); }
+function syncPlay() { $('play').textContent = L(playing ? 'PAUSE' : 'PLAY'); const gm = $('gmusic'); if (gm) { gm.textContent = L(playing ? 'MUSIC: ON' : 'MUSIC: OFF'); gm.setAttribute('aria-pressed', String(playing)); } updateBig(); }
 window.__toggleSong = () => { playing ? pause() : play(); };
 
 /* ================= UI ================= */
@@ -1277,13 +1407,13 @@ function setCue(c) {
   subEl.hidden = false;
   enEl.innerHTML = esc(c.text).replace(/Trapný/g, '<b>Trapný</b>');
   enEl.className = 'en' + (c.tr ? ' cz' : '');
-  trEl.textContent = c.tr; trEl.hidden = !c.tr;
+  const sub = SUB_L(c.text, c.tr); trEl.textContent = sub; trEl.hidden = !sub;
   enEl.classList.remove('pop'); void enEl.offsetWidth; enEl.classList.add('pop');
 }
 const chipBtns = [];
 SEC.forEach(s => {
   const bt = document.createElement('button');
-  bt.type = 'button'; bt.className = 'chip alt'; bt.textContent = s.label; bt.dataset.sec = s.id;
+  bt.type = 'button'; bt.className = 'chip alt'; bt.textContent = L(s.label); bt.dataset.sec = s.id;
   bt.addEventListener('click', () => { seekTo(s.t0 + .02); play(); });
   chipsEl.appendChild(bt); chipBtns.push(bt);
 });
@@ -1354,6 +1484,7 @@ window.__sections = () => SEC.map(s => [s.id, s.t0, s.t1]);
 if (document.fonts && document.fonts.load) {
   document.fonts.load('8px "Press Start 2P"', 'ČčĎďĚěŇňŘřŠšŤťŮůŽžÁÉÍÓÚÝáéíóúý').catch(() => {});
   document.fonts.load('16px "VT323"', 'ČčĚěŘřŠšŽžŮů').catch(() => {});
+  document.fonts.load('8px "Pixel CZ"', 'AZ ČĎĚŇŘŠŤŮŽÁÉÍÓÚÝ').catch(() => {});
 }
 (() => { const fb = $('fs'), fr = document.querySelector('.frame'); const rq = fr.requestFullscreen || fr.webkitRequestFullscreen; if (rq && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) { fb.hidden = false; fb.addEventListener('click', () => { const on = document.fullscreenElement || document.webkitFullscreenElement; if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else rq.call(fr); }); } })();
 /* timing editor disabled: to re-enable, add the 'show' class to #timing when the URL has ?edit */

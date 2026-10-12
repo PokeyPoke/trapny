@@ -8,7 +8,8 @@ const ctx = cv.getContext('2d');
 const W = 320, H = 180, TOP = 84, BOT = 168, LEFT = 12, RIGHT = 308;
 cv.width = W; cv.height = H;
 const INK = '#14102b', CREAM = '#fff3e0', YEL = '#ffe14d', PINK = '#ff3d8b', CYAN = '#3df2ff', RED = '#e63946';
-const FONT = s => s + 'px "Press Start 2P", ui-monospace, monospace';
+const L = window.L || (s => s);
+const FONT = (s, str) => (window.TRAPNY_LANG === 'cs' || (str && /[\u00C0-\u024F]/.test(str))) ? s + 'px "Pixel CZ", ui-monospace, monospace' : s + 'px "Press Start 2P", ui-monospace, monospace';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -18,14 +19,14 @@ const REDUCE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motio
 let G = ctx;
 function px(x, y, w, h, c) { if (w <= 0 || h <= 0) return; G.fillStyle = c; G.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); }
 function txt(s, x, y, size, color, align, shadow) {
-  ctx.font = FONT(size); ctx.textBaseline = 'top'; ctx.textAlign = align || 'left';
+  s = L(s); ctx.font = FONT(size, s); ctx.textBaseline = 'top'; ctx.textAlign = align || 'left';
   if (shadow !== null) { ctx.fillStyle = shadow || '#000'; ctx.fillText(s, Math.round(x) + 1, Math.round(y) + 1); }
   ctx.fillStyle = color; ctx.fillText(s, Math.round(x), Math.round(y));
 }
 function disc(cx, cy, rad, c) { for (let dy = -rad; dy <= rad; dy++) { const w = Math.floor(Math.sqrt(Math.max(0, rad * rad - dy * dy) + .5)); px(cx - w, cy + dy, w * 2 + 1, 1, c); } }
 function bubble(t, x, y, k) {
   if (k <= 0) return;
-  ctx.font = FONT(8);
+  t = L(t); ctx.font = FONT(8, t);
   const w = Math.ceil(ctx.measureText(t).width) + 10, h = 15;
   const bx = clamp(Math.round(x - w / 2), 2, W - w - 2), by = Math.round(y - h - 5);
   const tx = clamp(Math.round(x), bx + 6, bx + w - 6);
@@ -321,7 +322,7 @@ function render() {
   if (S.flash > 0 && !REDUCE) { g.fillStyle = 'rgba(255,255,255,' + (S.flash * .35).toFixed(2) + ')'; g.fillRect(0, 0, W, H); }
   // HUD
   g.fillStyle = 'rgba(8,5,24,.8)'; g.fillRect(0, 0, W, 13);
-  txt('PICKED ' + Math.min(S.picked, GOAL) + '/' + GOAL, 4, 3, 8, CREAM, 'left', null);
+  txt(L('PICKED ') + Math.min(S.picked, GOAL) + '/' + GOAL, 4, 3, 8, CREAM, 'left', null);
   txt('SUP BRO x' + S.sup, 118, 3, 8, YEL, 'left', null);
   px(256, 3, 60, 8, INK); px(257, 4, 58, 6, '#3a2a7a'); px(257, 4, Math.round(58 * S.meter / 100), 6, PINK);
   txt('TRAPNÝ', 212, 3, 8, CREAM, 'left', null);
@@ -332,10 +333,10 @@ function render() {
     px(50, 28, 220, 126, INK); px(53, 31, 214, 120, '#2a1f55'); px(53, 31, 214, 3, CYAN);
     txt('MEGA FUN!', W / 2, 40, 16, Math.floor(S.t * 4) % 2 ? PINK : YEL, 'center');
     txt('FAMILY TRADITION UNLOCKED', W / 2, 62, 8, CREAM, 'center');
-    txt('MUSHROOMS  ' + S.picked, 76, 80, 8, CREAM, 'left');
-    txt('SUP BROS   ' + S.sup, 76, 92, 8, YEL, 'left');
-    txt('TIME       ' + fmtT(S.time), 76, 104, 8, CREAM, 'left');
-    txt('BEST TIME  ' + fmtT(S.bestTime) + (S.newBest ? '  NEW!' : ''), 76, 116, 8, CYAN, 'left');
+    txt(L('MUSHROOMS  ') + S.picked, 76, 80, 8, CREAM, 'left');
+    txt(L('SUP BROS   ') + S.sup, 76, 92, 8, YEL, 'left');
+    txt(L('TIME       ') + fmtT(S.time), 76, 104, 8, CREAM, 'left');
+    txt(L('BEST TIME  ') + fmtT(S.bestTime) + (S.newBest ? L('  NEW!') : ''), 76, 116, 8, CYAN, 'left');
     if (Math.floor(S.t * 2) % 2) txt(COARSE ? 'TAP TO PLAY AGAIN' : 'CLICK OR PRESS ENTER', W / 2, 136, 8, PINK, 'center');
   }
   if (S.hint > 0 && S.mode === 'play') { g.fillStyle = 'rgba(8,5,24,.7)'; g.fillRect(40, 150, 240, 20); txt(S.started ? 'GRAB THE MUSHROOMS...' : (COARSE ? 'TAP OR USE THE BUTTONS' : 'ARROWS / WASD OR CLICK TO MOVE'), W / 2, 156, 8, YEL, 'center', null); }
@@ -382,7 +383,7 @@ const COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').ma
 const rpb = document.getElementById('greplay'); if (rpb) rpb.addEventListener('click', resetGame);
 const mus = document.getElementById('gmusic'); if (mus) mus.addEventListener('click', () => { if (window.__toggleSong) window.__toggleSong(); });
 const mb = document.getElementById('gmute');
-if (mb) mb.addEventListener('click', () => { muted = !muted; mb.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON'; mb.setAttribute('aria-pressed', String(muted)); });
+if (mb) mb.addEventListener('click', () => { muted = !muted; mb.textContent = L(muted ? 'SOUND: OFF' : 'SOUND: ON'); mb.setAttribute('aria-pressed', String(muted)); });
 
 /* ---------- loop ---------- */
 buildBg();
