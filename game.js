@@ -119,16 +119,17 @@ function anezka(x, y, s, o) {
   r(3, 5, 1, 1, '#ff9aa8'); r(8, 5, 1, 1, '#ff9aa8');
   g.restore();
 }
+const GOLD_KAREL = ['...KKKK...', '.KKYOYYKK.', 'KYYYYYYOYK', 'KYOYYYYYYK', 'KKKKKKKKKK', '..KCCCCK..', '..KECCEK..', '..KCMMCK..', '.KWWWWWWK.', '..KCCCCK..', '.KCCCCCCK.', '..KKKKKK..'];
+const GOLD_PAL = { K:INK, Y:'#ffd23f', O:'#fff08a', C:CREAM, E:INK, M:INK, P:'#ff9aa8', W:'#fff' };
 function mushroom(x, y, type, t, pop) {
   const s = 1 + (pop > 0 ? Math.sin(pop * Math.PI) * .5 : 0);
   const R = (a, b, w, h, c) => px(x + (a - 5) * s, y + (b - 9) * s, w * s, h * s, c);
   px(x - 5, y, 10, 2, 'rgba(0,0,0,.3)');
   if (type === 2) { // brown bolete
     R(1, 0, 8, 4, INK); R(2, 1, 6, 3, '#a0642b'); R(2, 1, 6, 1, '#c98a4b'); R(3, 4, 4, 4, '#e8d7b5'); R(4, 7, 2, 1, '#cbb98f');
-  } else if (type === 3) { // golden Karel
-    R(0, 0, 10, 4, INK); R(1, 1, 8, 3, '#ffd23f'); R(1, 1, 8, 1, '#fff08a'); R(3, 4, 4, 4, CREAM);
-    R(3, 5, 1, 1, INK); R(6, 5, 1, 1, INK); R(4, 7, 2, 1, INK); R(3, 6, 1, 1, '#ff9aa8'); R(6, 6, 1, 1, '#ff9aa8');
-    const a = Math.floor(t * 4) % 2; px(x - 7, y - 11 + a, 1, 3, YEL); px(x - 8, y - 10 + a, 3, 1, YEL);
+  } else if (type === 3) { // golden Karel: tall fly agaric (cap, ring, bulb), 10x12, standing on y
+    GOLD_KAREL.forEach((row, j) => [...row].forEach((ch, i) => { const c = GOLD_PAL[ch]; if (c) px(x + (i - 5) * s, y + (j - 12) * s, s, s, c); }));
+    const a = Math.floor(t * 4) % 2; px(x - 7, y - 15 + a, 1, 3, YEL); px(x - 8, y - 14 + a, 3, 1, YEL);
   } else { // red fly agaric
     R(0, 0, 10, 4, INK); R(1, 1, 8, 3, RED); R(2, 1, 2, 1, '#fff'); R(6, 1, 2, 1, '#fff'); R(4, 2, 1, 1, '#fff'); R(3, 4, 4, 4, CREAM); R(4, 7, 2, 1, '#e8d7b5');
   }
