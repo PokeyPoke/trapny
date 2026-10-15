@@ -25,10 +25,16 @@
   if (!l) l = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']).some(x => /^(cs|sk)\b/i.test(x)) ? 'cs' : 'en';
   document.documentElement.lang = l; window.TRAPNY_LANG = l; })();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
+/* fonts are self-hosted (SIL OFL, see fonts/OFL.txt) so no visitor data goes to Google */
+@font-face { font-family: "Press Start 2P"; src: url(fonts/pressstart2p-latin.woff2) format("woff2"); font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Press Start 2P"; src: url(fonts/pressstart2p-latin-ext.woff2) format("woff2"); font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "VT323"; src: url(fonts/vt323-latin.woff2) format("woff2"); font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "VT323"; src: url(fonts/vt323-latin-ext.woff2) format("woff2"); font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
   /* Layout: one centred 16:9 pixel stage with subtitles overlaid on wide screens and beneath on phones, transport row, section jump chips, collapsible timing editor. Deliberately single dark arcade look. */
   --ink: #120c2b;
@@ -140,6 +146,10 @@ html[lang=cs] { --display: "Pixel CZ", ui-monospace, Menlo, Consolas, monospace;
 @media (prefers-reduced-motion: reduce) { .star, .star svg { animation: none; } }
 .foot { margin-top: 20px; padding-top: 16px; border-top: 3px solid var(--line); text-align: center; font-family: var(--display); font-size: 10px; color: var(--dim); letter-spacing: 1px; }
 .foot b { color: var(--pink); font-weight: 400; }
+.privacy { margin-top: 12px; }
+.privacy summary { cursor: pointer; color: var(--dim); }
+.privacy p { margin: 10px auto 0; max-width: 60ch; font-family: var(--body); font-size: 18px; line-height: 1.15; letter-spacing: 0; text-align: left; }
+.privacy a { color: var(--cyan); }
 
 /* ---- mobile and touch ---- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -250,7 +260,13 @@ button { -webkit-user-select: none; user-select: none; }
   </a>
   <button type="button" class="star-x" id="starX" aria-label="Hide the merch star" data-cs-aria="Skrýt hvězdu s merchem">×</button>
   </div>
-  <footer class="foot">by <b>gargamel</b></footer>
+  <footer class="foot">by <b>gargamel</b>
+    <details class="privacy">
+      <summary data-cs="SOUKROMÍ">PRIVACY</summary>
+      <p data-cs="Žádné cookies, žádná analytika, žádné sledování. Web hostuje GitHub Pages, který kvůli bezpečnosti zaznamenává IP adresy návštěvníků (viz zásady ochrany osobních údajů GitHubu). Písma se načítají přímo z tohoto webu. Tvůj prohlížeč si pamatuje jen jazyk, nejlepší čas ve hře a jestli jsi zavřel(a) hvězdu MERCH!, a nikam to neposílá. Obchod s merchem provozuje Spreadshirt podle vlastních podmínek a zásad ochrany osobních údajů.">No cookies, no analytics, no tracking. The site is hosted on GitHub Pages, which logs visitors' IP addresses for security (see GitHub's privacy statement). Fonts load from this site itself. Your browser only remembers your language, your best game time and whether you closed the MERCH! star, and none of that is sent anywhere. The merch shop is run by Spreadshirt under its own terms and privacy policy.</p>
+      <p><a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener" data-cs="Zásady ochrany osobních údajů GitHubu">GitHub privacy statement</a> · <a href="https://trapnycz.myspreadshop.net/" target="_blank" rel="noopener" data-cs="Obchod (zásady jsou dole na stránce)">Shop (policy linked at the bottom)</a></p>
+    </details>
+  </footer>
 </main>
 
 <script>
