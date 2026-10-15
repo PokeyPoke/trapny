@@ -1260,7 +1260,7 @@ SCN.fin = c => {
   } else if (li === 3) {
     burst(T, pal, .08); confetti(30, T, [C.pink, C.yellow, C.cyan]);
     person(120, GY - 62, 5.2, 'girl', { mood:'laugh', t:T, noHp:true, hoodDown:true, arm:1 });
-    mush(150, GY - 138 + Math.round(Math.sin(T * 7) * 3), 5, true, T);
+    mush(150, GY - 110 + Math.round(Math.sin(T * 7) * 3), 4.5, true, T);
     portrait(40, 150, 2.4, 'dad', { body:false, mood:'laugh', t:T }); portrait(280, 150, 2.4, 'sis', { body:false, mood:'roll', t:T });
     portrait(250, 112, 2.4, 'uncle', { body:false, mood:'laugh', t:T, glint:true });
     sfx('BEST DAY!', 160, 20, 16, C.pink, 0, 1 + pul * .1);
