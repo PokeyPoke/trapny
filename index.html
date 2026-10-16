@@ -939,13 +939,13 @@ SCN.pre = c => {
 /* ================= chorus ================= */
 CHS.title = c => {
   const T = c.T, pul = pulOf(c.bp);
-  ctx.save(); ctx.translate(160, 76); const k = 1 + pul * .08; ctx.scale(k, k);
+  ctx.save(); ctx.translate(160, 70); const k = 1 + pul * .08; ctx.scale(k, k);
   otxt('MEGA', 0, -50, 20, C.yellow, 'center');
   const word = 'TRAPNÝ', x0 = -96, cols = [C.yellow, C.cream, C.cyan];
   for (let i = 0; i < word.length; i++) otxt(word[i], x0 + 16 + i * 32, -24 + Math.round(Math.sin(T * 4 + i) * 3), 32, cols[(i + Math.floor(T * 3)) % 3], 'center');
   ctx.restore();
-  portrait(70, 156, 3.2, 'girl', { body:false, mood:'roll', t:T, sweat:true });
-  for (const [dx,w] of [[150,'dad'],[200,'mom'],[250,'uncle']]) portrait(dx, 160, 2.6, w, { body:false, mood:'laugh', t:T + dx, mouth:'grin' });
+  portrait(70, 136, 3.2, 'girl', { body:false, mood:'roll', t:T, sweat:true });
+  for (const [dx,w] of [[150,'dad'],[200,'mom'],[250,'uncle']]) portrait(dx, 141, 2.6, w, { body:false, mood:'laugh', t:T + dx, mouth:'grin' });
 };
 CHS.family = c => {
   const T = c.T, hop = o => Math.round(Math.abs(Math.sin((c.bp + o) * Math.PI)) * 6);
